@@ -4,89 +4,99 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* NyayBot Theme - Saffron/Orange primary with warm neutrals */
-  --background: oklch(0.99 0.005 85);
-  --foreground: oklch(0.2 0.02 45);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.02 45);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.02 45);
-  --primary: oklch(0.65 0.18 45);
+  /* NyayBot Theme - Blue/Indigo gradient design */
+  --background: oklch(0.97 0.01 240);
+  --foreground: oklch(0.2 0.02 250);
+  --card: oklch(1 0 0 / 0.7);
+  --card-foreground: oklch(0.2 0.02 250);
+  --popover: oklch(1 0 0 / 0.9);
+  --popover-foreground: oklch(0.2 0.02 250);
+  --primary: oklch(0.55 0.2 270);
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.01 85);
-  --secondary-foreground: oklch(0.3 0.02 45);
-  --muted: oklch(0.95 0.01 85);
-  --muted-foreground: oklch(0.5 0.02 45);
-  --accent: oklch(0.75 0.15 55);
-  --accent-foreground: oklch(0.15 0.02 45);
+  --secondary: oklch(0.96 0.01 250);
+  --secondary-foreground: oklch(0.3 0.02 250);
+  --muted: oklch(0.95 0.01 250);
+  --muted-foreground: oklch(0.5 0.02 250);
+  --accent: oklch(0.6 0.18 270);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.9 0.01 85);
-  --input: oklch(0.92 0.01 85);
-  --ring: oklch(0.65 0.18 45);
-  --chart-1: oklch(0.65 0.18 45);
+  --border: oklch(1 0 0 / 0.4);
+  --input: oklch(1 0 0 / 0.6);
+  --ring: oklch(0.55 0.2 270);
+  --chart-1: oklch(0.55 0.2 270);
   --chart-2: oklch(0.6 0.12 160);
   --chart-3: oklch(0.5 0.1 230);
   --chart-4: oklch(0.75 0.15 55);
   --chart-5: oklch(0.55 0.22 25);
-  --radius: 0.75rem;
-  --sidebar: oklch(0.98 0.005 85);
-  --sidebar-foreground: oklch(0.2 0.02 45);
-  --sidebar-primary: oklch(0.65 0.18 45);
+  --radius: 1rem;
+  --sidebar: oklch(1 0 0 / 0.7);
+  --sidebar-foreground: oklch(0.2 0.02 250);
+  --sidebar-primary: oklch(0.55 0.2 270);
   --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.95 0.02 50);
-  --sidebar-accent-foreground: oklch(0.2 0.02 45);
-  --sidebar-border: oklch(0.9 0.01 85);
-  --sidebar-ring: oklch(0.65 0.18 45);
+  --sidebar-accent: oklch(0.95 0.02 270);
+  --sidebar-accent-foreground: oklch(0.2 0.02 250);
+  --sidebar-border: oklch(1 0 0 / 0.4);
+  --sidebar-ring: oklch(0.55 0.2 270);
   /* Custom NyayBot tokens */
   --sos: oklch(0.55 0.25 25);
   --sos-foreground: oklch(1 0 0);
   --success: oklch(0.6 0.15 145);
   --success-foreground: oklch(1 0 0);
+  /* User message bubble - indigo */
+  --user-bubble: oklch(0.55 0.2 270);
+  --user-bubble-foreground: oklch(1 0 0);
+  /* AI message bubble - glass */
+  --ai-bubble: oklch(1 0 0 / 0.7);
+  --ai-bubble-foreground: oklch(0.2 0.02 250);
 }
 
 .dark {
-  --background: oklch(0.15 0.01 45);
-  --foreground: oklch(0.95 0.01 85);
-  --card: oklch(0.18 0.01 45);
-  --card-foreground: oklch(0.95 0.01 85);
-  --popover: oklch(0.18 0.01 45);
-  --popover-foreground: oklch(0.95 0.01 85);
-  --primary: oklch(0.7 0.18 45);
-  --primary-foreground: oklch(0.12 0.01 45);
-  --secondary: oklch(0.25 0.01 45);
-  --secondary-foreground: oklch(0.95 0.01 85);
-  --muted: oklch(0.25 0.01 45);
-  --muted-foreground: oklch(0.65 0.01 85);
-  --accent: oklch(0.75 0.15 55);
-  --accent-foreground: oklch(0.12 0.01 45);
+  --background: oklch(0.15 0.02 250);
+  --foreground: oklch(0.95 0.01 250);
+  --card: oklch(0.2 0.02 250 / 0.7);
+  --card-foreground: oklch(0.95 0.01 250);
+  --popover: oklch(0.2 0.02 250 / 0.9);
+  --popover-foreground: oklch(0.95 0.01 250);
+  --primary: oklch(0.65 0.2 270);
+  --primary-foreground: oklch(0.1 0.02 250);
+  --secondary: oklch(0.25 0.02 250);
+  --secondary-foreground: oklch(0.95 0.01 250);
+  --muted: oklch(0.25 0.02 250);
+  --muted-foreground: oklch(0.65 0.01 250);
+  --accent: oklch(0.65 0.18 270);
+  --accent-foreground: oklch(0.1 0.02 250);
   --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(0.95 0.01 85);
-  --border: oklch(0.28 0.01 45);
-  --input: oklch(0.25 0.01 45);
-  --ring: oklch(0.7 0.18 45);
-  --chart-1: oklch(0.7 0.18 45);
+  --destructive-foreground: oklch(0.95 0.01 250);
+  --border: oklch(1 0 0 / 0.2);
+  --input: oklch(0.25 0.02 250);
+  --ring: oklch(0.65 0.2 270);
+  --chart-1: oklch(0.65 0.2 270);
   --chart-2: oklch(0.65 0.12 160);
   --chart-3: oklch(0.55 0.1 230);
   --chart-4: oklch(0.75 0.15 55);
   --chart-5: oklch(0.55 0.22 25);
-  --sidebar: oklch(0.12 0.01 45);
-  --sidebar-foreground: oklch(0.95 0.01 85);
-  --sidebar-primary: oklch(0.7 0.18 45);
-  --sidebar-primary-foreground: oklch(0.12 0.01 45);
-  --sidebar-accent: oklch(0.25 0.01 45);
-  --sidebar-accent-foreground: oklch(0.95 0.01 85);
-  --sidebar-border: oklch(0.28 0.01 45);
-  --sidebar-ring: oklch(0.7 0.18 45);
+  --sidebar: oklch(0.15 0.02 250 / 0.7);
+  --sidebar-foreground: oklch(0.95 0.01 250);
+  --sidebar-primary: oklch(0.65 0.2 270);
+  --sidebar-primary-foreground: oklch(0.1 0.02 250);
+  --sidebar-accent: oklch(0.25 0.02 270);
+  --sidebar-accent-foreground: oklch(0.95 0.01 250);
+  --sidebar-border: oklch(1 0 0 / 0.2);
+  --sidebar-ring: oklch(0.65 0.2 270);
   --sos: oklch(0.55 0.25 25);
   --sos-foreground: oklch(1 0 0);
   --success: oklch(0.55 0.15 145);
   --success-foreground: oklch(1 0 0);
+  --user-bubble: oklch(0.55 0.2 270);
+  --user-bubble-foreground: oklch(1 0 0);
+  --ai-bubble: oklch(0.2 0.02 250 / 0.7);
+  --ai-bubble-foreground: oklch(0.95 0.01 250);
 }
 
 @theme inline {
-  --font-sans: 'Geist', 'Geist Fallback';
-  --font-mono: 'Geist Mono', 'Geist Mono Fallback';
+  --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -115,6 +125,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -127,6 +138,10 @@
   --color-sos-foreground: var(--sos-foreground);
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
+  --color-user-bubble: var(--user-bubble);
+  --color-user-bubble-foreground: var(--user-bubble-foreground);
+  --color-ai-bubble: var(--ai-bubble);
+  --color-ai-bubble-foreground: var(--ai-bubble-foreground);
 }
 
 @layer base {
@@ -136,6 +151,28 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Gradient background for the app */
+.gradient-bg {
+  background: linear-gradient(135deg, 
+    oklch(0.96 0.02 240) 0%, 
+    oklch(0.99 0.005 0) 50%, 
+    oklch(0.96 0.03 270) 100%
+  );
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: oklch(1 0 0 / 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid oklch(1 0 0 / 0.4);
+}
+
+.dark .glass-card {
+  background: oklch(0.2 0.02 250 / 0.7);
+  border: 1px solid oklch(1 0 0 / 0.2);
 }
 
 /* Custom scrollbar for chat */
@@ -148,27 +185,36 @@
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--muted-foreground);
+  background: oklch(0.6 0.1 270 / 0.3);
   border-radius: 3px;
-  opacity: 0.5;
 }
 
 .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--foreground);
+  background: oklch(0.5 0.15 270 / 0.5);
 }
 
-/* Pulse animation for SOS button */
-@keyframes sos-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 0 oklch(0.55 0.25 25 / 0.7);
+/* Typing indicator animation */
+@keyframes typing-dot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
   }
-  50% {
-    box-shadow: 0 0 0 12px oklch(0.55 0.25 25 / 0);
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
   }
 }
 
-.sos-pulse {
-  animation: sos-pulse 2s infinite;
+.typing-dot {
+  animation: typing-dot 1.4s ease-in-out infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
 }
 
 /* Voice recording animation */
@@ -178,8 +224,8 @@
     opacity: 1;
   }
   50% {
-    transform: scale(1.1);
-    opacity: 0.7;
+    transform: scale(1.15);
+    opacity: 0.8;
   }
 }
 

@@ -1,7 +1,8 @@
 'use client'
 
-import { Scale, User, Copy, Check } from 'lucide-react'
+import { Scale, Copy, Check } from 'lucide-react'
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -9,9 +10,11 @@ interface ChatMessageProps {
   role: 'user' | 'assistant'
   content: string
   isStreaming?: boolean
+  lawReference?: string
+  timestamp?: string
 }
 
-export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
+export function ChatMessage({ role, content, isStreaming, lawReference, timestamp }: ChatMessageProps) {
   const [copied, setCopied] = useState(false)
   const isUser = role === 'user'
 
@@ -21,71 +24,117 @@ export function ChatMessage({ role, content, isStreaming }: ChatMessageProps) {
     setTimeout(() => setCopied(false), 2000)
   }
 
+  const formattedTime = timestamp 
+    ? new Date(timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+    : new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
+
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
       className={cn(
-        'flex gap-3 px-4 py-4',
-        isUser ? 'bg-transparent' : 'bg-muted/30'
+        'flex w-full px-4 py-3',
+        isUser ? 'justify-end' : 'justify-start'
       )}
     >
       <div
         className={cn(
-          'flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full',
-          isUser ? 'bg-secondary' : 'bg-primary'
+          'flex gap-3 max-w-[85%] md:max-w-[75%]',
+          isUser ? 'flex-row-reverse' : 'flex-row'
         )}
       >
-        {isUser ? (
-          <User className="h-4 w-4 text-secondary-foreground" />
-        ) : (
-          <Scale className="h-4 w-4 text-primary-foreground" />
+        {/* Avatar - only show for AI */}
+        {!isUser && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+            className="flex-shrink-0 flex items-start justify-center w-10 h-10 rounded-full bg-primary shadow-lg"
+          >
+            <Scale className="h-5 w-5 text-primary-foreground mt-2.5" />
+          </motion.div>
         )}
-      </div>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="text-sm font-medium text-foreground">
-            {isUser ? 'You' : 'NyayBot'}
-          </span>
-          {isStreaming && (
-            <span className="text-xs text-muted-foreground animate-pulse">
-              typing...
-            </span>
-          )}
-        </div>
-
-        <div className="prose prose-sm max-w-none text-foreground">
-          <MessageContent content={content} />
-        </div>
-
-        {!isUser && content && !isStreaming && (
-          <div className="flex items-center gap-2 mt-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCopy}
-              className="h-7 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="h-3.5 w-3.5" />
-                  Copy
-                </>
-              )}
-            </Button>
+        <div className="flex flex-col">
+          {/* Message bubble */}
+          <div
+            className={cn(
+              'px-4 py-3 shadow-sm',
+              isUser 
+                ? 'bg-primary text-primary-foreground rounded-2xl rounded-br-md' 
+                : 'glass-card rounded-2xl rounded-bl-md'
+            )}
+          >
+            {isStreaming && !content ? (
+              <TypingIndicator />
+            ) : (
+              <div className={cn(
+                'text-sm leading-relaxed',
+                isUser ? 'text-primary-foreground' : 'text-foreground'
+              )}>
+                <MessageContent content={content} isUser={isUser} />
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Law reference badge - only for AI messages */}
+          {!isUser && lawReference && !isStreaming && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mt-2"
+            >
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20">
+                <Scale className="h-3 w-3 mr-1.5" />
+                {lawReference}
+              </span>
+            </motion.div>
+          )}
+
+          {/* Timestamp and actions */}
+          <div className={cn(
+            'flex items-center gap-2 mt-1.5 px-1',
+            isUser ? 'justify-end' : 'justify-start'
+          )}>
+            <span className="text-[10px] text-muted-foreground">
+              {formattedTime}
+            </span>
+            
+            {!isUser && content && !isStreaming && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCopy}
+                className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+              >
+                {copied ? (
+                  <Check className="h-3 w-3" />
+                ) : (
+                  <Copy className="h-3 w-3" />
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
+    </motion.div>
+  )
+}
+
+function TypingIndicator() {
+  return (
+    <div className="flex items-center gap-1 py-1 px-2">
+      <span className="text-xs text-muted-foreground mr-2">NyayBot is thinking</span>
+      <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
+      <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
+      <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
     </div>
   )
 }
 
-function MessageContent({ content }: { content: string }) {
-  // Simple markdown-like rendering
+function MessageContent({ content, isUser }: { content: string; isUser: boolean }) {
   const lines = content.split('\n')
   
   return (
@@ -108,8 +157,8 @@ function MessageContent({ content }: { content: string }) {
         if (line.startsWith('- ') || line.startsWith('* ')) {
           return (
             <div key={i} className="flex gap-2 pl-2">
-              <span className="text-primary">•</span>
-              <span>{formatInlineText(line.slice(2))}</span>
+              <span className={isUser ? 'text-primary-foreground/70' : 'text-primary'}>•</span>
+              <span>{formatInlineText(line.slice(2), isUser)}</span>
             </div>
           )
         }
@@ -119,20 +168,25 @@ function MessageContent({ content }: { content: string }) {
         if (numberedMatch) {
           return (
             <div key={i} className="flex gap-2 pl-2">
-              <span className="text-primary font-medium min-w-[1.5rem]">{numberedMatch[1]}.</span>
-              <span>{formatInlineText(numberedMatch[2])}</span>
+              <span className={cn(
+                'font-medium min-w-[1.5rem]',
+                isUser ? 'text-primary-foreground/70' : 'text-primary'
+              )}>
+                {numberedMatch[1]}.
+              </span>
+              <span>{formatInlineText(numberedMatch[2], isUser)}</span>
             </div>
           )
         }
         
         // Regular paragraph
-        return <p key={i} className="leading-relaxed">{formatInlineText(line)}</p>
+        return <p key={i} className="leading-relaxed">{formatInlineText(line, isUser)}</p>
       })}
     </div>
   )
 }
 
-function formatInlineText(text: string): React.ReactNode {
+function formatInlineText(text: string, isUser: boolean): React.ReactNode {
   // Handle bold text **text**
   const parts = text.split(/(\*\*[^*]+\*\*)/g)
   return parts.map((part, i) => {
@@ -144,7 +198,15 @@ function formatInlineText(text: string): React.ReactNode {
     return placeholderParts.map((p, j) => {
       if (p.startsWith('[') && p.endsWith(']')) {
         return (
-          <span key={`${i}-${j}`} className="bg-accent text-accent-foreground px-1 rounded text-sm font-mono">
+          <span 
+            key={`${i}-${j}`} 
+            className={cn(
+              'px-1.5 py-0.5 rounded text-xs font-mono',
+              isUser 
+                ? 'bg-primary-foreground/20 text-primary-foreground' 
+                : 'bg-accent/50 text-accent-foreground'
+            )}
+          >
             {p}
           </span>
         )

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useChat, type UIMessage } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { Scale } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChatHeader } from './chat-header'
 import { ChatMessage } from './chat-message'
 import { ChatInput } from './chat-input'
@@ -30,6 +31,7 @@ export function ChatContainer() {
   const [complaintOpen, setComplaintOpen] = useState(false)
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
+  const [isInitialLoad, setIsInitialLoad] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -62,6 +64,8 @@ export function ChatContainer() {
       }
     } catch (error) {
       console.error('Failed to load sessions:', error)
+    } finally {
+      setIsInitialLoad(false)
     }
   }
 
@@ -101,12 +105,10 @@ export function ChatContainer() {
 
   const handleSelectSession = async (id: string) => {
     setActiveSessionId(id)
-    // Load messages for this session
     try {
       const response = await fetch(`/api/sessions/${id}/messages`)
       if (response.ok) {
         const data = await response.json()
-        // Convert to UIMessage format
         const uiMessages: UIMessage[] = data.map((msg: { id: string; role: 'user' | 'assistant'; content: string }) => ({
           id: msg.id,
           role: msg.role,
@@ -124,13 +126,36 @@ export function ChatContainer() {
     : 'Namaste! I am NyayBot'
   
   const welcomeSubtitle = language === 'hi'
-    ? 'आपका AI कानूनी सहायक। मैं भारतीय कानून, आपके अधिकारों, और कानूनी प्रक्रियाओं में आपकी मदद कर सकता हूं।'
-    : 'Your AI legal assistant. I can help you with Indian law, your rights, and legal procedures.'
+    ? 'अपनी कानूनी समस्या अपनी भाषा में बताएं — मैं आपके अधिकार सरल शब्दों में समझाऊंगा और कार्रवाई में मदद करूंगा।'
+    : 'Tell me your legal problem in your own language — I will explain your rights in simple words and help you take action.'
 
-  const quickActionsLabel = language === 'hi' ? 'त्वरित कार्य' : 'Quick Actions'
+  const quickActionsLabel = language === 'hi' ? 'सुझाव' : 'Suggested'
+
+  // Full-screen loading spinner
+  if (isInitialLoad) {
+    return (
+      <div className="flex h-screen items-center justify-center gradient-bg">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center gap-4"
+        >
+          <div className="w-16 h-16 rounded-full bg-primary/10 backdrop-blur-sm flex items-center justify-center">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+            >
+              <Scale className="h-8 w-8 text-primary" />
+            </motion.div>
+          </div>
+          <p className="text-muted-foreground">Loading NyayBot...</p>
+        </motion.div>
+      </div>
+    )
+  }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden gradient-bg">
       {/* Sidebar */}
       <ChatSidebar
         sessions={sessions}
@@ -158,40 +183,74 @@ export function ChatContainer() {
           ref={scrollRef}
           className="flex-1 chat-scrollbar"
         >
-          {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center min-h-full px-4 py-12">
-              <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
-                <Scale className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-semibold text-foreground text-center mb-2 text-balance">
-                {welcomeTitle}
-              </h2>
-              <p className="text-muted-foreground text-center max-w-md mb-8 text-pretty">
-                {welcomeSubtitle}
-              </p>
-              
-              <div className="w-full max-w-lg">
-                <p className="text-sm font-medium text-muted-foreground text-center mb-4">
-                  {quickActionsLabel}
-                </p>
-                <QuickActions 
-                  language={language} 
-                  onSelect={handleQuickAction} 
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="pb-4">
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  role={message.role as 'user' | 'assistant'}
-                  content={getUIMessageText(message)}
-                  isStreaming={status === 'streaming' && message === messages[messages.length - 1] && message.role === 'assistant'}
-                />
-              ))}
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            {messages.length === 0 ? (
+              <motion.div
+                key="welcome"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.4, ease: 'easeOut' }}
+                className="flex flex-col items-center justify-center min-h-full px-4 py-12"
+              >
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
+                  className="flex items-center justify-center w-20 h-20 rounded-full glass-card mb-6 shadow-lg"
+                >
+                  <Scale className="h-10 w-10 text-primary" />
+                </motion.div>
+                <motion.h2 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-2xl md:text-3xl font-semibold text-foreground text-center mb-3 text-balance"
+                >
+                  {welcomeTitle}
+                </motion.h2>
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-muted-foreground text-center max-w-md mb-8 text-pretty leading-relaxed"
+                >
+                  {welcomeSubtitle}
+                </motion.p>
+                
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="w-full max-w-lg"
+                >
+                  <p className="text-sm font-medium text-muted-foreground text-center mb-4">
+                    {quickActionsLabel}
+                  </p>
+                  <QuickActions 
+                    language={language} 
+                    onSelect={handleQuickAction} 
+                  />
+                </motion.div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="messages"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="pb-4"
+              >
+                {messages.map((message) => (
+                  <ChatMessage
+                    key={message.id}
+                    role={message.role as 'user' | 'assistant'}
+                    content={getUIMessageText(message)}
+                    isStreaming={status === 'streaming' && message === messages[messages.length - 1] && message.role === 'assistant'}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </ScrollArea>
 
         {/* Input Area */}
@@ -217,7 +276,7 @@ export function ChatContainer() {
         sessionId={activeSessionId}
       />
 
-      {/* Floating SOS Button for Mobile */}
+      {/* Floating SOS Button */}
       <FloatingSOS onClick={() => setSOSOpen(true)} />
     </div>
   )

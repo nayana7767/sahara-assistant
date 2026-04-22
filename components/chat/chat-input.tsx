@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Send, Mic, MicOff, Loader2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -18,13 +19,20 @@ export function ChatInput({ onSend, isLoading, language, disabled }: ChatInputPr
   const [input, setInput] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
+  const [voiceSupported, setVoiceSupported] = useState(true)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
 
+  // Check voice support on mount
+  useEffect(() => {
+    const supported = 'mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices
+    setVoiceSupported(supported)
+  }, [])
+
   const placeholder = language === 'hi' 
-    ? 'अपना प्रश्न यहां लिखें...' 
-    : 'Type your legal question here...'
+    ? 'अपनी समस्या यहां बताएं...' 
+    : 'Tell me your legal problem...'
 
   const handleSubmit = () => {
     if (!input.trim() || isLoading || disabled) return
@@ -44,7 +52,6 @@ export function ChatInput({ onSend, isLoading, language, disabled }: ChatInputPr
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(e.target.value)
-    // Auto-resize
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`
@@ -113,8 +120,12 @@ export function ChatInput({ onSend, isLoading, language, disabled }: ChatInputPr
   }
 
   return (
-    <div className="border-t border-border bg-card p-4">
-      <div className="flex items-end gap-2 max-w-4xl mx-auto">
+    <motion.div 
+      initial={{ y: 20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="border-t border-border/50 glass-card p-4"
+    >
+      <div className="flex items-end gap-3 max-w-4xl mx-auto">
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
@@ -123,50 +134,83 @@ export function ChatInput({ onSend, isLoading, language, disabled }: ChatInputPr
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={isLoading || disabled || isTranscribing}
-            className="min-h-[52px] max-h-[200px] resize-none pr-12 py-3"
+            className="min-h-[56px] max-h-[200px] resize-none pr-14 py-4 rounded-2xl glass-card border-border/50 focus:border-primary/50 text-base"
             rows={1}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={toggleRecording}
-            disabled={isLoading || disabled || isTranscribing}
-            className={cn(
-              'absolute right-2 bottom-2 h-8 w-8',
-              isRecording && 'text-destructive voice-recording'
+          
+          {/* Voice input button */}
+          <AnimatePresence>
+            {voiceSupported && (
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute right-3 bottom-3"
+              >
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleRecording}
+                  disabled={isLoading || disabled || isTranscribing}
+                  className={cn(
+                    'h-9 w-9 rounded-full transition-all',
+                    isRecording && 'bg-red-500 text-white hover:bg-red-600'
+                  )}
+                  aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
+                >
+                  {isTranscribing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : isRecording ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1] }}
+                      transition={{ repeat: Infinity, duration: 1 }}
+                    >
+                      <MicOff className="h-4 w-4" />
+                    </motion.div>
+                  ) : (
+                    <Mic className="h-4 w-4" />
+                  )}
+                </Button>
+              </motion.div>
             )}
-            aria-label={isRecording ? 'Stop recording' : 'Start voice input'}
-          >
-            {isTranscribing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : isRecording ? (
-              <MicOff className="h-4 w-4" />
-            ) : (
-              <Mic className="h-4 w-4" />
-            )}
-          </Button>
+          </AnimatePresence>
+          
+          {!voiceSupported && (
+            <p className="absolute right-3 bottom-4 text-[10px] text-muted-foreground">
+              Voice not supported
+            </p>
+          )}
         </div>
 
-        <Button
-          onClick={handleSubmit}
-          disabled={!input.trim() || isLoading || disabled}
-          size="icon"
-          className="h-[52px] w-[52px] shrink-0"
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          {isLoading ? (
-            <Loader2 className="h-5 w-5 animate-spin" />
-          ) : (
-            <Send className="h-5 w-5" />
-          )}
-        </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!input.trim() || isLoading || disabled}
+            size="icon"
+            className="h-14 w-14 shrink-0 rounded-2xl shadow-lg"
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <Send className="h-5 w-5" />
+            )}
+          </Button>
+        </motion.div>
       </div>
 
-      <p className="text-xs text-muted-foreground text-center mt-2">
+      <motion.p 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        className="text-[11px] text-muted-foreground text-center mt-3"
+      >
         {language === 'hi' 
           ? 'NyayBot केवल सूचनात्मक उद्देश्यों के लिए है। जटिल मामलों के लिए वकील से परामर्श करें।'
           : 'NyayBot is for informational purposes only. Consult a lawyer for complex matters.'}
-      </p>
-    </div>
+      </motion.p>
+    </motion.div>
   )
 }
