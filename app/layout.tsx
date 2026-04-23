@@ -10,11 +10,11 @@ const inter = Inter({
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'NyayBot - AI Legal Assistant for India',
+  title: 'Sahara - AI Legal Assistant for India',
   description: 'Your AI-powered legal assistant providing guidance on Indian law, rights, and legal procedures. Get instant help with FIRs, RTIs, consumer complaints, and more.',
   generator: 'v0.app',
-  keywords: ['legal assistant', 'Indian law', 'FIR', 'RTI', 'consumer rights', 'legal aid', 'NyayBot'],
-  authors: [{ name: 'NyayBot Team' }],
+  keywords: ['legal assistant', 'Indian law', 'FIR', 'RTI', 'consumer rights', 'legal aid', 'Sahara'],
+  authors: [{ name: 'Sahara Team' }],
   icons: {
     icon: [
       {

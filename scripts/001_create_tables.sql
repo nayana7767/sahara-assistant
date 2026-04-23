@@ -1,4 +1,4 @@
--- NyayBot Database Schema
+-- Sahara Database Schema
 -- Chat sessions table
 CREATE TABLE IF NOT EXISTS chat_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

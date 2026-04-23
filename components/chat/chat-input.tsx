@@ -208,8 +208,8 @@ export function ChatInput({ onSend, isLoading, language, disabled }: ChatInputPr
         className="text-[11px] text-muted-foreground text-center mt-3"
       >
         {language === 'hi' 
-          ? 'NyayBot केवल सूचनात्मक उद्देश्यों के लिए है। जटिल मामलों के लिए वकील से परामर्श करें।'
-          : 'NyayBot is for informational purposes only. Consult a lawyer for complex matters.'}
+          ? 'सहारा केवल सूचनात्मक उद्देश्यों के लिए है। जटिल मामलों के लिए वकील से परामर्श करें।'
+          : 'Sahara is for informational purposes only. Consult a lawyer for complex matters.'}
       </motion.p>
     </motion.div>
   )

@@ -44,7 +44,7 @@ export function ChatHeader({
             <Scale className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-semibold text-foreground">NyayBot</h1>
+            <h1 className="text-lg font-semibold text-foreground">Sahara</h1>
             <p className="text-xs text-muted-foreground">
               {language === 'hi' ? 'आपका कानूनी सहायक' : 'Your Legal Assistant'}
             </p>

@@ -109,3 +109,86 @@ export const EMERGENCY_CATEGORIES = {
   mental_health: { label: { en: 'Mental Health', hi: 'मानसिक स्वास्थ्य' }, color: 'indigo' },
   legal: { label: { en: 'Legal Aid', hi: 'कानूनी सहायता' }, color: 'amber' },
 } as const
+
+export interface PriorityEmergencyContact {
+  title: string
+  number: string
+  category: string
+  priority: number
+  immediate?: boolean
+}
+
+export const PRIORITY_EMERGENCY_CONTACTS: PriorityEmergencyContact[] = [
+  // 🥇 Tier 1 — Women Safety (HIGHEST PRIORITY)
+  {
+    title: "Women Helpline",
+    number: "1091",
+    category: "women",
+    priority: 1
+  },
+  {
+    title: "National Commission for Women",
+    number: "7827170170",
+    category: "women",
+    priority: 1
+  },
+  
+  // 🥈 Tier 2 — Immediate Life-Threatening Emergencies
+  {
+    title: "National Emergency",
+    number: "112",
+    category: "emergency",
+    priority: 2,
+    immediate: true
+  },
+  {
+    title: "Police",
+    number: "100",
+    category: "police",
+    priority: 2,
+    immediate: true
+  },
+  {
+    title: "Ambulance",
+    number: "102",
+    category: "medical",
+    priority: 2,
+    immediate: true
+  },
+  
+  // 🥉 Tier 3 — Vulnerable Groups Support
+  {
+    title: "Child Helpline",
+    number: "1098",
+    category: "child",
+    priority: 3
+  },
+  {
+    title: "Senior Citizens Helpline",
+    number: "14567",
+    category: "senior",
+    priority: 3
+  },
+  
+  // 🏅 Tier 4 — Legal & Mental Support
+  {
+    title: "Legal Aid Services",
+    number: "15100",
+    category: "legal",
+    priority: 4
+  },
+  {
+    title: "Mental Health Helpline (iCALL)",
+    number: "9152987821",
+    category: "mental_health",
+    priority: 4
+  },
+  
+  // 🧠 Tier 5 — Digital & Cyber Safety
+  {
+    title: "Cyber Crime Helpline",
+    number: "1930",
+    category: "cyber",
+    priority: 5
+  }
+]

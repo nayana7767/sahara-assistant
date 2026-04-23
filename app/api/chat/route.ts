@@ -1,7 +1,7 @@
 import { streamText, convertToModelMessages } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 
-const SYSTEM_PROMPT = `You are NyayBot, an AI-powered legal assistant specializing in Indian law. Your role is to provide accessible, accurate, and empathetic legal guidance to citizens of India.
+const SYSTEM_PROMPT = `You are Sahara, an AI-powered legal assistant specializing in Indian law. Your role is to provide accessible, accurate, and empathetic legal guidance to citizens of India.
 
 ## Core Responsibilities:
 1. **Legal Education**: Explain Indian laws, rights, and legal procedures in simple, understandable language

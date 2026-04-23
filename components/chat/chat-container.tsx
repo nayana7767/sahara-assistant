@@ -122,8 +122,8 @@ export function ChatContainer() {
   }
 
   const welcomeTitle = language === 'hi' 
-    ? 'नमस्ते! मैं न्यायबोट हूं' 
-    : 'Namaste! I am NyayBot'
+    ? 'नमस्ते! मैं सहारा हूं' 
+    : 'Namaste! I am Sahara'
   
   const welcomeSubtitle = language === 'hi'
     ? 'अपनी कानूनी समस्या अपनी भाषा में बताएं — मैं आपके अधिकार सरल शब्दों में समझाऊंगा और कार्रवाई में मदद करूंगा।'
@@ -148,7 +148,7 @@ export function ChatContainer() {
               <Scale className="h-8 w-8 text-primary" />
             </motion.div>
           </div>
-          <p className="text-muted-foreground">Loading NyayBot...</p>
+          <p className="text-muted-foreground">Loading Sahara...</p>
         </motion.div>
       </div>
     )

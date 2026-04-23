@@ -126,7 +126,7 @@ export function ChatMessage({ role, content, isStreaming, lawReference, timestam
 function TypingIndicator() {
   return (
     <div className="flex items-center gap-1 py-1 px-2">
-      <span className="text-xs text-muted-foreground mr-2">NyayBot is thinking</span>
+      <span className="text-xs text-muted-foreground mr-2">Sahara is thinking</span>
       <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
       <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
       <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
