@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useChat, type UIMessage } from '@ai-sdk/react'
-import { DefaultChatTransport } from 'ai'
+import { type UIMessage } from '@ai-sdk/react'
 import { Scale } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChatHeader } from './chat-header'
@@ -13,16 +12,26 @@ import { SOSModal } from './sos-modal'
 import { ChatSidebar } from './chat-sidebar'
 import { ComplaintGenerator } from './complaint-generator'
 import { FloatingSOS } from './floating-sos'
+import { APIKeyModal } from './api-key-modal'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useTranslation } from '@/lib/i18n/useTranslation'
+import { callOpenRouterAPI, getOpenRouterApiKey, type OpenRouterMessage } from '@/lib/openrouter'
 import type { ChatSession } from '@/lib/types'
 
-function getUIMessageText(msg: UIMessage): string {
-  if (!msg.parts || !Array.isArray(msg.parts)) return ''
-  return msg.parts
-    .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-    .map((p) => p.text)
-    .join('')
+interface StoredMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+}
+
+function getUIMessageText(msg: UIMessage | StoredMessage): string {
+  if ('parts' in msg && msg.parts && Array.isArray(msg.parts)) {
+    return msg.parts
+      .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+      .map((p) => p.text)
+      .join('')
+  }
+  return msg.content || ''
 }
 
 export function ChatContainer() {
@@ -30,19 +39,20 @@ export function ChatContainer() {
   const [sosOpen, setSOSOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [complaintOpen, setComplaintOpen] = useState(false)
+  const [apiKeyOpen, setApiKeyOpen] = useState(false)
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [messages, setMessages] = useState<StoredMessage[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasApiKey, setHasApiKey] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const { messages, sendMessage, status, setMessages } = useChat({
-    transport: new DefaultChatTransport({ 
-      api: '/api/chat',
-      body: { language },
-    }),
-  })
-
-  const isLoading = status === 'streaming' || status === 'submitted'
+  // Check for API key on mount
+  useEffect(() => {
+    const hasKey = !!getOpenRouterApiKey()
+    setHasApiKey(hasKey)
+  }, [apiKeyOpen])
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -55,44 +65,6 @@ export function ChatContainer() {
   useEffect(() => {
     loadSessions()
   }, [])
-
-  // Persist messages to the backend after streaming completes
-  const lastMessageCountRef = useRef(0)
-  useEffect(() => {
-    if (status === 'ready' && activeSessionId && messages.length > lastMessageCountRef.current) {
-      const newMessages = messages.slice(lastMessageCountRef.current)
-      lastMessageCountRef.current = messages.length
-      
-      // Save each new message
-      for (const msg of newMessages) {
-        const content = getUIMessageText(msg)
-        if (content) {
-          fetch(`/api/sessions/${activeSessionId}/messages`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ role: msg.role, content }),
-          }).catch(err => console.error('Failed to save message:', err))
-        }
-      }
-
-      // Auto-title the session from the first user message
-      if (messages.length >= 1) {
-        const firstUserMsg = messages.find(m => m.role === 'user')
-        if (firstUserMsg) {
-          const title = getUIMessageText(firstUserMsg).slice(0, 50) || 'New Chat'
-          fetch(`/api/sessions/${activeSessionId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title }),
-          }).then(() => {
-            setSessions(prev => prev.map(s => 
-              s.id === activeSessionId ? { ...s, title } : s
-            ))
-          }).catch(err => console.error('Failed to update title:', err))
-        }
-      }
-    }
-  }, [status, messages, activeSessionId])
 
   const loadSessions = async () => {
     try {
@@ -120,34 +92,139 @@ export function ChatContainer() {
         setSessions((prev) => [session, ...prev])
         setActiveSessionId(session.id)
         setMessages([])
-        lastMessageCountRef.current = 0
       }
     } catch (error) {
       console.error('Failed to create session:', error)
     }
   }
 
-  const handleSendMessage = useCallback(async (content: string) => {
-    // Auto-create session if none exists
-    if (!activeSessionId) {
+  const handleSendMessage = useCallback(
+    async (content: string) => {
+      const apiKey = getOpenRouterApiKey()
+      if (!apiKey) {
+        alert('Please configure your OpenRouter API key first')
+        setApiKeyOpen(true)
+        return
+      }
+
+      // Auto-create session if none exists
+      let currentSessionId = activeSessionId
+      if (!currentSessionId) {
+        try {
+          const response = await fetch('/api/sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ language }),
+          })
+          if (response.ok) {
+            const session = await response.json()
+            setSessions((prev) => [session, ...prev])
+            setActiveSessionId(session.id)
+            currentSessionId = session.id
+          }
+        } catch (error) {
+          console.error('Failed to create session:', error)
+          return
+        }
+      }
+
+      // Add user message
+      const userMessage: StoredMessage = {
+        id: `${Date.now()}-user`,
+        role: 'user',
+        content,
+      }
+      setMessages((prev) => [...prev, userMessage])
+
+      // Save user message
+      if (currentSessionId) {
+        try {
+          await fetch(`/api/sessions/${currentSessionId}/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: 'user', content }),
+          })
+        } catch (error) {
+          console.error('Failed to save user message:', error)
+        }
+      }
+
+      // Call AI
+      setIsLoading(true)
+      const assistantMessage: StoredMessage = {
+        id: `${Date.now()}-assistant`,
+        role: 'assistant',
+        content: '',
+      }
+      setMessages((prev) => [...prev, assistantMessage])
+
       try {
-        const response = await fetch('/api/sessions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language }),
+        const conversationMessages: OpenRouterMessage[] = messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        }))
+        conversationMessages.push({
+          role: 'user',
+          content,
         })
-        if (response.ok) {
-          const session = await response.json()
-          setSessions((prev) => [session, ...prev])
-          setActiveSessionId(session.id)
-          lastMessageCountRef.current = 0
+
+        let assistantContent = ''
+        await callOpenRouterAPI(conversationMessages, apiKey, (chunk) => {
+          assistantContent += chunk
+          setMessages((prev) => {
+            const updated = [...prev]
+            if (updated[updated.length - 1]?.role === 'assistant') {
+              updated[updated.length - 1].content = assistantContent
+            }
+            return updated
+          })
+        })
+
+        // Save assistant message
+        if (currentSessionId && assistantContent) {
+          try {
+            await fetch(`/api/sessions/${currentSessionId}/messages`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ role: 'assistant', content: assistantContent }),
+            })
+          } catch (error) {
+            console.error('Failed to save assistant message:', error)
+          }
+
+          // Auto-title the session from the first user message
+          try {
+            const title = content.slice(0, 50) || 'New Chat'
+            await fetch(`/api/sessions/${currentSessionId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ title }),
+            }).then(() => {
+              setSessions((prev) =>
+                prev.map((s) => (s.id === currentSessionId ? { ...s, title } : s))
+              )
+            })
+          } catch (error) {
+            console.error('Failed to update title:', error)
+          }
         }
       } catch (error) {
-        console.error('Failed to create session:', error)
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to get response from AI'
+        console.error('Chat error:', error)
+        setMessages((prev) => {
+          const updated = [...prev]
+          if (updated[updated.length - 1]?.role === 'assistant') {
+            updated[updated.length - 1].content = `Error: ${errorMessage}`
+          }
+          return updated
+        })
+      } finally {
+        setIsLoading(false)
       }
-    }
-    sendMessage({ text: content })
-  }, [activeSessionId, language, sendMessage])
+    },
+    [activeSessionId, language, messages]
+  )
 
   const handleQuickAction = (prompt: string) => {
     handleSendMessage(prompt)
@@ -163,7 +240,6 @@ export function ChatContainer() {
     if (activeSessionId === id) {
       setActiveSessionId(null)
       setMessages([])
-      lastMessageCountRef.current = 0
     }
   }
 
@@ -173,13 +249,14 @@ export function ChatContainer() {
       const response = await fetch(`/api/sessions/${id}/messages`)
       if (response.ok) {
         const data = await response.json()
-        const uiMessages: UIMessage[] = data.map((msg: { id: string; role: 'user' | 'assistant'; content: string }) => ({
-          id: msg.id,
-          role: msg.role,
-          parts: [{ type: 'text' as const, text: msg.content }],
-        }))
-        setMessages(uiMessages)
-        lastMessageCountRef.current = uiMessages.length
+        const loadedMessages: StoredMessage[] = data.map(
+          (msg: { id: string; role: 'user' | 'assistant'; content: string }) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+          })
+        )
+        setMessages(loadedMessages)
       }
     } catch (error) {
       console.error('Failed to load messages:', error)
@@ -232,14 +309,12 @@ export function ChatContainer() {
           onOpenSidebar={() => setSidebarOpen(true)}
           onOpenSOS={() => setSOSOpen(true)}
           onOpenDocuments={() => setComplaintOpen(true)}
+          onOpenAPIKey={() => setApiKeyOpen(true)}
           t={t}
         />
 
         {/* Messages Area */}
-        <ScrollArea 
-          ref={scrollRef}
-          className="flex-1 chat-scrollbar"
-        >
+        <ScrollArea ref={scrollRef} className="flex-1 chat-scrollbar">
           <AnimatePresence mode="wait">
             {messages.length === 0 ? (
               <motion.div
@@ -250,7 +325,7 @@ export function ChatContainer() {
                 transition={{ duration: 0.4, ease: 'easeOut' }}
                 className="flex flex-col items-center justify-center min-h-full px-4 py-12"
               >
-                <motion.div 
+                <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
@@ -258,7 +333,7 @@ export function ChatContainer() {
                 >
                   <Scale className="h-10 w-10 text-primary" />
                 </motion.div>
-                <motion.h2 
+                <motion.h2
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
@@ -266,7 +341,7 @@ export function ChatContainer() {
                 >
                   {t('welcome.title')}
                 </motion.h2>
-                <motion.p 
+                <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.4 }}
@@ -274,8 +349,27 @@ export function ChatContainer() {
                 >
                   {t('welcome.subtitle')}
                 </motion.p>
-                
-                <motion.div 
+
+                {!hasApiKey && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    className="w-full max-w-md mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg"
+                  >
+                    <p className="text-sm text-yellow-800 dark:text-yellow-300 mb-3">
+                      ⚠️ OpenRouter API key not configured
+                    </p>
+                    <button
+                      onClick={() => setApiKeyOpen(true)}
+                      className="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md text-sm font-medium transition-colors"
+                    >
+                      Configure API Key
+                    </button>
+                  </motion.div>
+                )}
+
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
@@ -284,26 +378,21 @@ export function ChatContainer() {
                   <p className="text-sm font-medium text-muted-foreground text-center mb-4">
                     {t('welcome.suggested')}
                   </p>
-                  <QuickActions 
-                    language={language} 
+                  <QuickActions
+                    language={language}
                     onSelect={handleQuickAction}
                     t={t}
                   />
                 </motion.div>
               </motion.div>
             ) : (
-              <motion.div
-                key="messages"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="pb-4"
-              >
+              <motion.div key="messages" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-4">
                 {messages.map((message) => (
                   <ChatMessage
                     key={message.id}
-                    role={message.role as 'user' | 'assistant'}
-                    content={getUIMessageText(message)}
-                    isStreaming={status === 'streaming' && message === messages[messages.length - 1] && message.role === 'assistant'}
+                    role={message.role}
+                    content={message.content}
+                    isStreaming={isLoading && message === messages[messages.length - 1] && message.role === 'assistant'}
                     language={language}
                     t={t}
                   />
@@ -337,6 +426,17 @@ export function ChatContainer() {
         language={language}
         sessionId={activeSessionId}
         t={t}
+      />
+
+      {/* API Key Modal */}
+      <APIKeyModal
+        open={apiKeyOpen}
+        onOpenChange={(open) => {
+          setApiKeyOpen(open)
+          if (!open) {
+            setHasApiKey(!!getOpenRouterApiKey())
+          }
+        }}
       />
 
       {/* Floating SOS Button */}
