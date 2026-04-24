@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, Download, Copy, Check, Loader2, X } from 'lucide-react'
+import { FileText, Download, Copy, Check, Loader2, Printer } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -21,19 +22,22 @@ import {
 } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { Language } from '@/lib/types'
+import type { TranslationKey } from '@/lib/i18n/translations'
 
-const COMPLAINT_TYPES = {
-  fir: { en: 'First Information Report (FIR)', hi: 'प्रथम सूचना रिपोर्ट (FIR)' },
-  rti: { en: 'RTI Application', hi: 'RTI आवेदन' },
-  consumer: { en: 'Consumer Complaint', hi: 'उपभोक्ता शिकायत' },
-  legal_notice: { en: 'Legal Notice', hi: 'कानूनी नोटिस' },
-}
+const DOC_TYPE_KEYS: { value: string; key: TranslationKey }[] = [
+  { value: 'fir', key: 'docType.fir' },
+  { value: 'rti', key: 'docType.rti' },
+  { value: 'consumer', key: 'docType.consumer' },
+  { value: 'legal_notice', key: 'docType.legalNotice' },
+  { value: 'affidavit', key: 'docType.affidavit' },
+]
 
 interface ComplaintGeneratorProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   language: Language
   sessionId: string | null
+  t: (key: TranslationKey) => string
 }
 
 export function ComplaintGenerator({
@@ -41,9 +45,12 @@ export function ComplaintGenerator({
   onOpenChange,
   language,
   sessionId,
+  t,
 }: ComplaintGeneratorProps) {
   const [type, setType] = useState<string>('')
   const [details, setDetails] = useState('')
+  const [name, setName] = useState('')
+  const [location, setLocation] = useState('')
   const [generatedContent, setGeneratedContent] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -54,13 +61,20 @@ export function ComplaintGenerator({
     setIsGenerating(true)
     setGeneratedContent('')
 
+    // Build enriched details with form fields
+    const enrichedDetails = [
+      name && `Name: ${name}`,
+      location && `Location: ${location}`,
+      `Details: ${details}`,
+    ].filter(Boolean).join('\n')
+
     try {
       const response = await fetch('/api/generate-complaint', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type,
-          details,
+          details: enrichedDetails,
           language,
           sessionId,
         }),
@@ -95,16 +109,36 @@ export function ComplaintGenerator({
     URL.revokeObjectURL(url)
   }
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${t('doc.generated')}</title>
+          <style>
+            body { font-family: 'Times New Roman', serif; padding: 2cm; line-height: 1.6; color: #000; }
+            pre { white-space: pre-wrap; font-family: 'Times New Roman', serif; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <pre>${generatedContent}</pre>
+        </body>
+        </html>
+      `)
+      printWindow.document.close()
+      printWindow.print()
+    }
+  }
+
   const handleReset = () => {
     setType('')
     setDetails('')
+    setName('')
+    setLocation('')
     setGeneratedContent('')
   }
-
-  const title = language === 'hi' ? 'दस्तावेज़ जनरेटर' : 'Document Generator'
-  const subtitle = language === 'hi'
-    ? 'अपने विवरण दर्ज करें और AI-संचालित कानूनी दस्तावेज़ प्राप्त करें'
-    : 'Enter your details and get AI-powered legal documents'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,52 +146,59 @@ export function ComplaintGenerator({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
-            {title}
+            {t('doc.title')}
           </DialogTitle>
-          <DialogDescription>{subtitle}</DialogDescription>
+          <DialogDescription>{t('doc.subtitle')}</DialogDescription>
         </DialogHeader>
 
         {!generatedContent ? (
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 overflow-y-auto">
             <div className="space-y-2">
-              <Label>
-                {language === 'hi' ? 'दस्तावेज़ प्रकार' : 'Document Type'}
-              </Label>
+              <Label>{t('doc.typeLabel')}</Label>
               <Select value={type} onValueChange={setType}>
                 <SelectTrigger>
-                  <SelectValue
-                    placeholder={
-                      language === 'hi'
-                        ? 'दस्तावेज़ प्रकार चुनें'
-                        : 'Select document type'
-                    }
-                  />
+                  <SelectValue placeholder={t('doc.selectType')} />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(COMPLAINT_TYPES).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label[language]}
+                  {DOC_TYPE_KEYS.map((docType) => (
+                    <SelectItem key={docType.value} value={docType.value}>
+                      {t(docType.key)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>
+                  {language === 'en' ? 'Your Name' : language === 'hi' ? 'आपका नाम' : language === 'kn' ? 'ನಿಮ್ಮ ಹೆಸರು' : language === 'te' ? 'మీ పేరు' : 'உங்கள் பெயர்'}
+                </Label>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="[YOUR NAME]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>
+                  {language === 'en' ? 'Location' : language === 'hi' ? 'स्थान' : language === 'kn' ? 'ಸ್ಥಳ' : language === 'te' ? 'స్థానం' : 'இடம்'}
+                </Label>
+                <Input
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="City, State"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label>
-                {language === 'hi'
-                  ? 'घटना/मामले का विवरण'
-                  : 'Incident/Case Details'}
-              </Label>
+              <Label>{t('doc.detailsLabel')}</Label>
               <Textarea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
-                placeholder={
-                  language === 'hi'
-                    ? 'घटना का पूरा विवरण दें: क्या हुआ, कब हुआ, कहां हुआ, कौन शामिल था...'
-                    : 'Provide complete details: what happened, when, where, who was involved...'
-                }
-                className="min-h-[150px]"
+                placeholder={t('doc.detailsPlaceholder')}
+                className="min-h-[120px]"
               />
             </div>
 
@@ -169,12 +210,12 @@ export function ComplaintGenerator({
               {isGenerating ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  {language === 'hi' ? 'जनरेट हो रहा है...' : 'Generating...'}
+                  {t('doc.generating')}
                 </>
               ) : (
                 <>
                   <FileText className="h-4 w-4 mr-2" />
-                  {language === 'hi' ? 'दस्तावेज़ जनरेट करें' : 'Generate Document'}
+                  {t('doc.generate')}
                 </>
               )}
             </Button>
@@ -182,9 +223,7 @@ export function ComplaintGenerator({
         ) : (
           <div className="flex-1 flex flex-col min-h-0 py-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium">
-                {language === 'hi' ? 'जनरेट किया गया दस्तावेज़' : 'Generated Document'}
-              </h3>
+              <h3 className="font-medium">{t('doc.generated')}</h3>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -195,14 +234,23 @@ export function ComplaintGenerator({
                   {copied ? (
                     <>
                       <Check className="h-4 w-4" />
-                      {language === 'hi' ? 'कॉपी हुआ' : 'Copied'}
+                      {t('doc.copied')}
                     </>
                   ) : (
                     <>
                       <Copy className="h-4 w-4" />
-                      {language === 'hi' ? 'कॉपी' : 'Copy'}
+                      {t('doc.copy')}
                     </>
                   )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePrint}
+                  className="gap-1.5"
+                >
+                  <Printer className="h-4 w-4" />
+                  {t('doc.print')}
                 </Button>
                 <Button
                   variant="outline"
@@ -211,13 +259,13 @@ export function ComplaintGenerator({
                   className="gap-1.5"
                 >
                   <Download className="h-4 w-4" />
-                  {language === 'hi' ? 'डाउनलोड' : 'Download'}
+                  {t('doc.download')}
                 </Button>
               </div>
             </div>
 
             <ScrollArea className="flex-1 border rounded-lg p-4 bg-muted/30">
-              <pre className="whitespace-pre-wrap text-sm font-mono">
+              <pre className="whitespace-pre-wrap text-sm font-mono leading-relaxed">
                 {generatedContent}
               </pre>
             </ScrollArea>
@@ -227,7 +275,7 @@ export function ComplaintGenerator({
               onClick={handleReset}
               className="mt-4"
             >
-              {language === 'hi' ? 'नया दस्तावेज़ बनाएं' : 'Create New Document'}
+              {t('doc.createNew')}
             </Button>
           </div>
         )}

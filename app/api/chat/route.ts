@@ -1,6 +1,13 @@
 import { streamText, convertToModelMessages } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 
+const LANG_INSTRUCTIONS: Record<string, string> = {
+  hi: '\n\nThe user prefers Hindi. Please respond in Hindi (Devanagari script) unless they write in English.',
+  kn: '\n\nThe user prefers Kannada. Please respond in Kannada (ಕನ್ನಡ script) unless they write in English.',
+  te: '\n\nThe user prefers Telugu. Please respond in Telugu (తెలుగు script) unless they write in English.',
+  ta: '\n\nThe user prefers Tamil. Please respond in Tamil (தமிழ் script) unless they write in English.',
+}
+
 const SYSTEM_PROMPT = `You are Sahara, an AI-powered legal assistant specializing in Indian law. Your role is to provide accessible, accurate, and empathetic legal guidance to citizens of India.
 
 ## Core Responsibilities:
@@ -27,7 +34,7 @@ const SYSTEM_PROMPT = `You are Sahara, an AI-powered legal assistant specializin
 - When using legal terms, explain them clearly
 - Provide step-by-step guidance when explaining procedures
 - Always mention relevant sections/articles of law when applicable
-- If the user writes in Hindi, respond in Hindi. Otherwise, respond in English.
+- Respond in the same language the user uses
 
 ## Important Guidelines:
 - NEVER provide advice that could be considered practicing law without a license
@@ -58,9 +65,7 @@ export async function POST(req: Request) {
   const supabase = await createClient()
   
   // Add language context to system prompt
-  const languageInstruction = language === 'hi' 
-    ? '\n\nThe user prefers Hindi. Please respond in Hindi (Devanagari script) unless they write in English.'
-    : ''
+  const languageInstruction = LANG_INSTRUCTIONS[language] || ''
 
   const result = streamText({
     model: 'openai/gpt-4o-mini',

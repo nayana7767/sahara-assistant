@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SUPPORTED_LANGUAGES, type Language } from '@/lib/types'
+import type { TranslationKey } from '@/lib/i18n/translations'
 
 interface ChatHeaderProps {
   language: Language
@@ -16,6 +17,7 @@ interface ChatHeaderProps {
   onOpenSidebar: () => void
   onOpenSOS: () => void
   onOpenDocuments: () => void
+  t: (key: TranslationKey) => string
 }
 
 export function ChatHeader({
@@ -24,6 +26,7 @@ export function ChatHeader({
   onOpenSidebar,
   onOpenSOS,
   onOpenDocuments,
+  t,
 }: ChatHeaderProps) {
   const currentLang = SUPPORTED_LANGUAGES.find((l) => l.code === language)
 
@@ -44,9 +47,9 @@ export function ChatHeader({
             <Scale className="h-5 w-5 text-primary-foreground" />
           </div>
           <div className="hidden sm:block">
-            <h1 className="text-lg font-semibold text-foreground">Sahara</h1>
+            <h1 className="text-lg font-semibold text-foreground">{t('nav.title')}</h1>
             <p className="text-xs text-muted-foreground">
-              {language === 'hi' ? 'आपका कानूनी सहायक' : 'Your Legal Assistant'}
+              {t('nav.subtitle')}
             </p>
           </div>
         </div>
@@ -61,7 +64,7 @@ export function ChatHeader({
         >
           <FileText className="h-4 w-4" />
           <span className="hidden sm:inline">
-            {language === 'hi' ? 'दस्तावेज़' : 'Documents'}
+            {t('nav.documents')}
           </span>
         </Button>
 
@@ -92,7 +95,7 @@ export function ChatHeader({
           className="gap-2 bg-sos hover:bg-sos/90 text-sos-foreground sos-pulse"
         >
           <Phone className="h-4 w-4" />
-          <span className="hidden sm:inline">SOS</span>
+          <span className="hidden sm:inline">{t('nav.sos')}</span>
         </Button>
       </div>
     </header>

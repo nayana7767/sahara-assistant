@@ -1,10 +1,13 @@
 'use client'
 
-import { Scale, Copy, Check } from 'lucide-react'
-import { useState } from 'react'
+import { Scale, Copy, Check, Volume2, VolumeX } from 'lucide-react'
+import { useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { useSpeech } from '@/hooks/useSpeech'
+import type { Language } from '@/lib/types'
+import type { TranslationKey } from '@/lib/i18n/translations'
 
 interface ChatMessageProps {
   role: 'user' | 'assistant'
@@ -12,17 +15,29 @@ interface ChatMessageProps {
   isStreaming?: boolean
   lawReference?: string
   timestamp?: string
+  language: Language
+  t: (key: TranslationKey) => string
 }
 
-export function ChatMessage({ role, content, isStreaming, lawReference, timestamp }: ChatMessageProps) {
+export function ChatMessage({ role, content, isStreaming, lawReference, timestamp, language, t }: ChatMessageProps) {
   const [copied, setCopied] = useState(false)
   const isUser = role === 'user'
+
+  const { isSpeaking, ttsSupported, speak, stopSpeaking } = useSpeech({ language })
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
+
+  const handleSpeak = useCallback(() => {
+    if (isSpeaking) {
+      stopSpeaking()
+    } else {
+      speak(content)
+    }
+  }, [isSpeaking, content, speak, stopSpeaking])
 
   const formattedTime = timestamp 
     ? new Date(timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })
@@ -67,7 +82,7 @@ export function ChatMessage({ role, content, isStreaming, lawReference, timestam
             )}
           >
             {isStreaming && !content ? (
-              <TypingIndicator />
+              <TypingIndicator thinkingText={t('chat.thinking')} />
             ) : (
               <div className={cn(
                 'text-sm leading-relaxed',
@@ -103,18 +118,44 @@ export function ChatMessage({ role, content, isStreaming, lawReference, timestam
             </span>
             
             {!isUser && content && !isStreaming && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCopy}
-                className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
-              >
-                {copied ? (
-                  <Check className="h-3 w-3" />
-                ) : (
-                  <Copy className="h-3 w-3" />
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="h-5 w-5 p-0 text-muted-foreground hover:text-foreground"
+                >
+                  {copied ? (
+                    <Check className="h-3 w-3" />
+                  ) : (
+                    <Copy className="h-3 w-3" />
+                  )}
+                </Button>
+
+                {/* TTS Button */}
+                {ttsSupported && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSpeak}
+                    className={cn(
+                      "h-5 w-5 p-0 transition-colors",
+                      isSpeaking 
+                        ? "text-primary hover:text-primary/80" 
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                    title={isSpeaking ? t('tts.stop') : t('tts.play')}
+                  >
+                    {isSpeaking ? (
+                      <motion.div animate={{ scale: [1, 1.15, 1] }} transition={{ repeat: Infinity, duration: 0.8 }}>
+                        <VolumeX className="h-3 w-3" />
+                      </motion.div>
+                    ) : (
+                      <Volume2 className="h-3 w-3" />
+                    )}
+                  </Button>
                 )}
-              </Button>
+              </div>
             )}
           </div>
         </div>
@@ -123,10 +164,10 @@ export function ChatMessage({ role, content, isStreaming, lawReference, timestam
   )
 }
 
-function TypingIndicator() {
+function TypingIndicator({ thinkingText }: { thinkingText: string }) {
   return (
     <div className="flex items-center gap-1 py-1 px-2">
-      <span className="text-xs text-muted-foreground mr-2">Sahara is thinking</span>
+      <span className="text-xs text-muted-foreground mr-2">{thinkingText}</span>
       <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
       <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />
       <div className="typing-dot w-2 h-2 rounded-full bg-primary/60" />

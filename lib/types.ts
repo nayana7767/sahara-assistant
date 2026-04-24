@@ -1,3 +1,7 @@
+// Re-export language types from i18n module
+export type { Language } from '@/lib/i18n/translations'
+export { SUPPORTED_LANGUAGES, SPEECH_LANG_MAP, WHISPER_LANG_MAP } from '@/lib/i18n/translations'
+
 export interface ChatSession {
   id: string
   user_id: string | null
@@ -45,70 +49,6 @@ export interface GeneratedComplaint {
   metadata: Record<string, unknown>
   created_at: string
 }
-
-export type Language = 'en' | 'hi'
-
-export interface LanguageConfig {
-  code: Language
-  name: string
-  nativeName: string
-}
-
-export const SUPPORTED_LANGUAGES: LanguageConfig[] = [
-  { code: 'en', name: 'English', nativeName: 'English' },
-  { code: 'hi', name: 'Hindi', nativeName: 'हिन्दी' },
-]
-
-export const QUICK_ACTIONS = [
-  {
-    id: 'fir',
-    label: { en: 'Draft FIR', hi: 'FIR का मसौदा' },
-    icon: 'FileText',
-    prompt: { 
-      en: 'Help me draft an FIR (First Information Report)', 
-      hi: 'मुझे FIR (प्रथम सूचना रिपोर्ट) का मसौदा तैयार करने में मदद करें' 
-    },
-  },
-  {
-    id: 'rti',
-    label: { en: 'File RTI', hi: 'RTI दाखिल करें' },
-    icon: 'Search',
-    prompt: { 
-      en: 'Help me file an RTI (Right to Information) application', 
-      hi: 'RTI (सूचना का अधिकार) आवेदन दाखिल करने में मेरी मदद करें' 
-    },
-  },
-  {
-    id: 'consumer',
-    label: { en: 'Consumer Complaint', hi: 'उपभोक्ता शिकायत' },
-    icon: 'ShieldAlert',
-    prompt: { 
-      en: 'Help me file a consumer complaint', 
-      hi: 'उपभोक्ता शिकायत दर्ज करने में मेरी मदद करें' 
-    },
-  },
-  {
-    id: 'rights',
-    label: { en: 'Know My Rights', hi: 'मेरे अधिकार जानें' },
-    icon: 'Scale',
-    prompt: { 
-      en: 'Explain my fundamental rights as an Indian citizen', 
-      hi: 'एक भारतीय नागरिक के रूप में मेरे मौलिक अधिकारों की व्याख्या करें' 
-    },
-  },
-]
-
-export const EMERGENCY_CATEGORIES = {
-  police: { label: { en: 'Police', hi: 'पुलिस' }, color: 'blue' },
-  women: { label: { en: 'Women Helpline', hi: 'महिला हेल्पलाइन' }, color: 'pink' },
-  child: { label: { en: 'Child Helpline', hi: 'बाल हेल्पलाइन' }, color: 'green' },
-  medical: { label: { en: 'Medical', hi: 'चिकित्सा' }, color: 'red' },
-  emergency: { label: { en: 'Emergency', hi: 'आपातकाल' }, color: 'orange' },
-  cyber: { label: { en: 'Cyber Crime', hi: 'साइबर अपराध' }, color: 'purple' },
-  senior: { label: { en: 'Senior Citizens', hi: 'वरिष्ठ नागरिक' }, color: 'teal' },
-  mental_health: { label: { en: 'Mental Health', hi: 'मानसिक स्वास्थ्य' }, color: 'indigo' },
-  legal: { label: { en: 'Legal Aid', hi: 'कानूनी सहायता' }, color: 'amber' },
-} as const
 
 export interface PriorityEmergencyContact {
   title: string
@@ -192,3 +132,16 @@ export const PRIORITY_EMERGENCY_CONTACTS: PriorityEmergencyContact[] = [
     priority: 5
   }
 ]
+
+// Category key to translation key mapping
+export const CATEGORY_TRANSLATION_MAP: Record<string, string> = {
+  police: 'category.police',
+  women: 'category.women',
+  child: 'category.child',
+  medical: 'category.medical',
+  emergency: 'category.emergency',
+  cyber: 'category.cyber',
+  senior: 'category.senior',
+  mental_health: 'category.mentalHealth',
+  legal: 'category.legal',
+} as const

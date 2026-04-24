@@ -2,32 +2,26 @@
 
 import { motion } from 'framer-motion'
 import type { Language } from '@/lib/types'
+import type { TranslationKey } from '@/lib/i18n/translations'
 
-// Suggested prompt chips as specified in the design
-const PROMPT_CHIPS = [
-  {
-    id: 'landlord',
-    label: { en: 'My landlord is evicting me', hi: 'मेरा मकान मालिक मुझे निकाल रहा है' },
-  },
-  {
-    id: 'salary',
-    label: { en: 'My employer hasn\'t paid my salary', hi: 'मेरे नियोक्ता ने मेरा वेतन नहीं दिया' },
-  },
-  {
-    id: 'police',
-    label: { en: 'I need to file a police complaint', hi: 'मुझे पुलिस शिकायत दर्ज करनी है' },
-  },
-]
-
+// Suggested prompt chips
 interface QuickActionsProps {
   language: Language
   onSelect: (prompt: string) => void
+  t: (key: TranslationKey) => string
 }
 
-export function QuickActions({ language, onSelect }: QuickActionsProps) {
+export function QuickActions({ language, onSelect, t }: QuickActionsProps) {
+  const chips = [
+    { id: 'landlord', key: 'prompt.landlord' as TranslationKey },
+    { id: 'salary', key: 'prompt.salary' as TranslationKey },
+    { id: 'police', key: 'prompt.police' as TranslationKey },
+    { id: 'rights', key: 'prompt.rights' as TranslationKey },
+  ]
+
   return (
     <div className="flex flex-wrap justify-center gap-3">
-      {PROMPT_CHIPS.map((chip, index) => (
+      {chips.map((chip, index) => (
         <motion.button
           key={chip.id}
           initial={{ opacity: 0, y: 10 }}
@@ -35,10 +29,10 @@ export function QuickActions({ language, onSelect }: QuickActionsProps) {
           transition={{ delay: index * 0.1 }}
           whileHover={{ scale: 1.03, y: -2 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => onSelect(chip.label[language])}
+          onClick={() => onSelect(t(chip.key))}
           className="glass-card px-4 py-3 rounded-2xl text-sm text-foreground hover:bg-primary/5 hover:border-primary/30 transition-colors shadow-sm cursor-pointer"
         >
-          {chip.label[language]}
+          {t(chip.key)}
         </motion.button>
       ))}
     </div>

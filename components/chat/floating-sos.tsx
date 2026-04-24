@@ -15,7 +15,7 @@ export function FloatingSOS({ onClick }: FloatingSOSProps) {
       animate={{ scale: 1 }}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
-      className="fixed bottom-24 right-4 z-[9999] h-16 w-16 rounded-full shadow-2xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center"
+      className="fixed bottom-6 right-5 z-40 h-14 w-14 rounded-full shadow-2xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center md:h-16 md:w-16"
       aria-label="Emergency SOS"
     >
       {/* Pulse rings */}
@@ -56,7 +56,7 @@ export function FloatingSOS({ onClick }: FloatingSOSProps) {
           ease: 'easeInOut',
         }}
       >
-        <Phone className="h-7 w-7" />
+        <Phone className="h-6 w-6 md:h-7 md:w-7" />
       </motion.div>
       
       {/* SOS text label */}

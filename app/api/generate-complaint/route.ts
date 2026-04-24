@@ -51,6 +51,27 @@ Use placeholders where needed.`,
 - Signature
 
 Use placeholders where needed.`,
+
+  affidavit: `Generate a formal affidavit (sworn statement). Include:
+- Header with court/authority name placeholder
+- Deponent details (Name, Age, Father's Name, Address)
+- Title: "AFFIDAVIT"
+- Opening: "I, [NAME], son/daughter of [FATHER'S NAME], aged [AGE], resident of [ADDRESS], do hereby solemnly affirm and declare as follows:"
+- Numbered paragraphs for each statement of fact
+- Declaration: "I hereby declare that the contents of this affidavit are true and correct to the best of my knowledge and belief."
+- Place, Date, and Deponent's signature section
+- Verification clause
+- Notary stamp and seal placeholder
+
+Use placeholders where needed.`,
+}
+
+const LANG_INSTRUCTIONS: Record<string, string> = {
+  en: 'Generate the document in English.',
+  hi: 'Generate the document in Hindi (Devanagari script).',
+  kn: 'Generate the document in Kannada (ಕನ್ನಡ script).',
+  te: 'Generate the document in Telugu (తెలుగు script).',
+  ta: 'Generate the document in Tamil (தமிழ் script).',
 }
 
 export async function POST(req: Request) {
@@ -61,9 +82,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid complaint type' }, { status: 400 })
   }
 
-  const languageInstruction = language === 'hi'
-    ? 'Generate the document in Hindi (Devanagari script).'
-    : 'Generate the document in English.'
+  const languageInstruction = LANG_INSTRUCTIONS[language] || LANG_INSTRUCTIONS.en
 
   try {
     const result = await generateText({

@@ -1,10 +1,22 @@
 'use client'
 
 import { MessageSquare, Plus, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import type { ChatSession, Language } from '@/lib/types'
+import type { TranslationKey } from '@/lib/i18n/translations'
 
 interface ChatSidebarProps {
   sessions: ChatSession[]
@@ -15,6 +27,7 @@ interface ChatSidebarProps {
   language: Language
   isOpen: boolean
   onClose: () => void
+  t: (key: TranslationKey) => string
 }
 
 export function ChatSidebar({
@@ -26,9 +39,16 @@ export function ChatSidebar({
   language,
   isOpen,
   onClose,
+  t,
 }: ChatSidebarProps) {
-  const newChatLabel = language === 'hi' ? 'नई चैट' : 'New Chat'
-  const historyLabel = language === 'hi' ? 'चैट इतिहास' : 'Chat History'
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+
+  const confirmDelete = () => {
+    if (deleteId) {
+      onDeleteSession(deleteId)
+      setDeleteId(null)
+    }
+  }
 
   return (
     <>
@@ -51,7 +71,7 @@ export function ChatSidebar({
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-            <h2 className="font-semibold text-sidebar-foreground">{historyLabel}</h2>
+            <h2 className="font-semibold text-sidebar-foreground">{t('sidebar.history')}</h2>
             <Button
               variant="ghost"
               size="icon"
@@ -70,7 +90,7 @@ export function ChatSidebar({
               variant="default"
             >
               <Plus className="h-4 w-4" />
-              {newChatLabel}
+              {t('sidebar.newChat')}
             </Button>
           </div>
 
@@ -79,7 +99,7 @@ export function ChatSidebar({
             <div className="space-y-1 pb-4">
               {sessions.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  {language === 'hi' ? 'कोई चैट नहीं' : 'No chats yet'}
+                  {t('sidebar.noChats')}
                 </p>
               ) : (
                 sessions.map((session) => (
@@ -106,7 +126,7 @@ export function ChatSidebar({
                       className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                       onClick={(e) => {
                         e.stopPropagation()
-                        onDeleteSession(session.id)
+                        setDeleteId(session.id)
                       }}
                     >
                       <Trash2 className="h-3 w-3" />
@@ -120,13 +140,29 @@ export function ChatSidebar({
           {/* Footer */}
           <div className="p-4 border-t border-sidebar-border">
             <p className="text-xs text-muted-foreground text-center">
-              {language === 'hi' 
-                ? 'भारतीय कानून सहायता' 
-                : 'Indian Law Assistance'}
+              {t('sidebar.footer')}
             </p>
           </div>
         </div>
       </aside>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('sidebar.deleteTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('sidebar.deleteConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('sidebar.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              {t('sidebar.delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
