@@ -1,6 +1,6 @@
 'use client'
 
-import { Scale, Menu, Phone, Globe, FileText } from 'lucide-react'
+import { Scale, Menu, Phone, Globe, FileText, Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -17,6 +17,7 @@ interface ChatHeaderProps {
   onOpenSidebar: () => void
   onOpenSOS: () => void
   onOpenDocuments: () => void
+  onOpenAPIKey: () => void
   t: (key: TranslationKey) => string
 }
 
@@ -26,6 +27,7 @@ export function ChatHeader({
   onOpenSidebar,
   onOpenSOS,
   onOpenDocuments,
+  onOpenAPIKey,
   t,
 }: ChatHeaderProps) {
   const currentLang = SUPPORTED_LANGUAGES.find((l) => l.code === language)
@@ -66,6 +68,17 @@ export function ChatHeader({
           <span className="hidden sm:inline">
             {t('nav.documents')}
           </span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenAPIKey}
+          className="gap-2"
+          title="Configure OpenRouter API Key"
+        >
+          <Key className="h-4 w-4" />
+          <span className="hidden sm:inline">API Key</span>
         </Button>
 
         <DropdownMenu>
