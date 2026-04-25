@@ -31,16 +31,16 @@ export function ChatHeader({
   const currentLang = SUPPORTED_LANGUAGES.find((l) => l.code === language)
 
   return (
-    <header className="w-full bg-white border-b border-border shadow-sm px-6 py-3">
+    <header className="w-full bg-white border-b border-gray-200 shadow-sm px-6 py-4">
       <div className="flex items-center justify-between">
         {/* LEFT: Logo + App Name */}
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary">
-            <Scale className="h-6 w-6 text-primary-foreground" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600">
+            <Scale className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-foreground">Sahara</h1>
-            <p className="text-xs text-muted-foreground hidden sm:block">
+            <h1 className="text-xl font-bold text-gray-900">Sahara</h1>
+            <p className="text-xs text-gray-500 hidden sm:block">
               {t('nav.subtitle')}
             </p>
           </div>
@@ -50,12 +50,12 @@ export function ChatHeader({
         <div className="flex-1" />
 
         {/* RIGHT: Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={onOpenDocuments}
-            className="gap-2 hidden sm:flex"
+            className="gap-2 hidden sm:flex border-gray-200 hover:bg-gray-50"
             title={t('nav.documents')}
           >
             <FileText className="h-4 w-4" />
@@ -66,7 +66,7 @@ export function ChatHeader({
             variant="outline"
             size="sm"
             onClick={onOpenAPIKey}
-            className="gap-2 hidden sm:flex"
+            className="gap-2 hidden sm:flex border-gray-200 hover:bg-gray-50"
             title="Configure OpenRouter API Key"
           >
             <Key className="h-4 w-4" />
@@ -75,7 +75,7 @@ export function ChatHeader({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2 border-gray-200 hover:bg-gray-50">
                 <Globe className="h-4 w-4" />
                 <span className="hidden sm:inline">{currentLang?.nativeName}</span>
               </Button>
@@ -85,7 +85,7 @@ export function ChatHeader({
                 <DropdownMenuItem
                   key={lang.code}
                   onClick={() => onLanguageChange(lang.code)}
-                  className={language === lang.code ? 'bg-accent' : ''}
+                  className={language === lang.code ? 'bg-blue-50' : ''}
                 >
                   {lang.nativeName} ({lang.name})
                 </DropdownMenuItem>
@@ -97,7 +97,7 @@ export function ChatHeader({
             variant="destructive"
             size="sm"
             onClick={onOpenSOS}
-            className="gap-2"
+            className="gap-2 bg-red-600 hover:bg-red-700"
           >
             <Phone className="h-4 w-4" />
             <span className="hidden sm:inline">{t('nav.sos')}</span>
