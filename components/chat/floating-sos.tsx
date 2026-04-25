@@ -15,7 +15,7 @@ export function FloatingSOS({ onClick }: FloatingSOSProps) {
       animate={{ scale: 1 }}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
-      className="fixed bottom-6 right-5 z-40 h-14 w-14 rounded-full shadow-2xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center md:h-16 md:w-16"
+      className="fixed bottom-20 right-4 sm:right-6 z-40 h-14 w-14 rounded-full shadow-2xl bg-red-500 hover:bg-red-600 text-white flex items-center justify-center md:h-16 md:w-16 md:bottom-24"
       aria-label="Emergency SOS"
     >
       {/* Pulse rings */}
