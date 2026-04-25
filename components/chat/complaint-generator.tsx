@@ -36,7 +36,6 @@ interface ComplaintGeneratorProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   language: Language
-  sessionId: string | null
   t: (key: TranslationKey) => string
 }
 
@@ -44,7 +43,6 @@ export function ComplaintGenerator({
   open,
   onOpenChange,
   language,
-  sessionId,
   t,
 }: ComplaintGeneratorProps) {
   const [type, setType] = useState<string>('')
@@ -76,7 +74,6 @@ export function ComplaintGenerator({
           type,
           details: enrichedDetails,
           language,
-          sessionId,
         }),
       })
 

@@ -1,78 +1,65 @@
-import { streamText, convertToModelMessages } from 'ai'
-import { createClient } from '@/lib/supabase/server'
+import { streamText } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
 
+// ─── OpenAI Provider Setup ────────────────────────────────────────────────
+const openai = createOpenAI({
+  apiKey: process.env.OPENAI_API_KEY ?? "",
+});
+
+// ─── Language Instructions ────────────────────────────────────────────────
 const LANG_INSTRUCTIONS: Record<string, string> = {
-  hi: '\n\nThe user prefers Hindi. Please respond in Hindi (Devanagari script) unless they write in English.',
-  kn: '\n\nThe user prefers Kannada. Please respond in Kannada (ಕನ್ನಡ script) unless they write in English.',
-  te: '\n\nThe user prefers Telugu. Please respond in Telugu (తెలుగు script) unless they write in English.',
-  ta: '\n\nThe user prefers Tamil. Please respond in Tamil (தமிழ் script) unless they write in English.',
-}
+  hi: "\n\nThe user prefers Hindi. Please respond in Hindi (Devanagari script) unless they write in English.",
+  kn: "\n\nThe user prefers Kannada. Please respond in Kannada (ಕನ್ನಡ script) unless they write in English.",
+  te: "\n\nThe user prefers Telugu. Please respond in Telugu (తెలుగు script) unless they write in English.",
+  ta: "\n\nThe user prefers Tamil. Please respond in Tamil (தமிழ் script) unless they write in English.",
+};
 
-const SYSTEM_PROMPT = `You are Sahara, an AI-powered legal assistant specializing in Indian law. Your role is to provide accessible, accurate, and empathetic legal guidance to citizens of India.
+// ─── System Prompt ────────────────────────────────────────────────────────
+const SYSTEM_PROMPT = `You are Sahara, an AI-powered legal assistant specializing in Indian law.
 
-## Core Responsibilities:
-1. **Legal Education**: Explain Indian laws, rights, and legal procedures in simple, understandable language
-2. **Document Assistance**: Help draft legal documents like FIRs, RTI applications, consumer complaints, legal notices, and affidavits
-3. **Rights Awareness**: Educate users about their fundamental rights, consumer rights, women's rights, labor rights, etc.
-4. **Procedural Guidance**: Explain legal processes, court procedures, and where to seek help
-5. **Emergency Support**: Provide relevant emergency contacts and immediate action steps when needed
+You help users understand their legal rights, explain legal concepts, and guide them through legal situations in India.
 
-## Key Indian Laws to Reference:
-- Constitution of India (Fundamental Rights - Articles 12-35)
-- Bharatiya Nyaya Sanhita (BNS) - Criminal offenses
-- Bharatiya Nagarik Suraksha Sanhita (BNSS) - Criminal procedures
-- Consumer Protection Act, 2019
-- Right to Information Act, 2005
-- Protection of Women from Domestic Violence Act, 2005
-- Motor Vehicles Act, 2019
-- Information Technology Act, 2000
-- Labour laws and workers' rights
+Guidelines:
+- Always respond in a simple and clear way
+- Be empathetic and supportive
+- Mention relevant laws (IPC, Constitution, RTI, etc.) when useful
+- Clearly state that your response is for informational purposes only, not legal advice
+- Suggest consulting a qualified lawyer for serious issues
+- If it's an emergency, suggest contacting police (100), national emergency (112), or women helpline (1091)
+`;
 
-## Communication Style:
-- Be empathetic and supportive - users may be in distressing situations
-- Use simple language, avoiding excessive legal jargon
-- When using legal terms, explain them clearly
-- Provide step-by-step guidance when explaining procedures
-- Always mention relevant sections/articles of law when applicable
-- Respond in the same language the user uses
-
-## Important Guidelines:
-- NEVER provide advice that could be considered practicing law without a license
-- Always recommend consulting a qualified lawyer for complex matters
-- Provide emergency contacts when the situation is urgent
-- Be culturally sensitive and aware of Indian social contexts
-- When drafting documents, provide templates that users can customize
-- Clearly state that your assistance is for informational purposes only
-
-## Document Drafting Format:
-When drafting legal documents, use proper formatting:
-- Clear headers and sections
-- Appropriate legal language while keeping it understandable
-- Placeholders for personal information like [YOUR NAME], [DATE], etc.
-- Notes explaining each section
-
-## Emergency Situations:
-If the user describes an emergency (violence, immediate danger, medical emergency), immediately:
-1. Provide relevant emergency numbers (100 for Police, 112 for National Emergency, 1091 for Women Helpline)
-2. Advise immediate safety steps
-3. Then continue with legal guidance
-
-Remember: You are a bridge between complex legal systems and common citizens. Make justice accessible.`
-
+// ─── POST Handler ─────────────────────────────────────────────────────────
 export async function POST(req: Request) {
-  const { messages, language = 'en' } = await req.json()
+  try {
+    const { messages, language = "en" } = await req.json();
 
-  const supabase = await createClient()
-  
-  // Add language context to system prompt
-  const languageInstruction = LANG_INSTRUCTIONS[language] || ''
+    // Validate messages
+    if (!messages || !Array.isArray(messages)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid request: messages array required" }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-  const result = streamText({
-    model: 'openai/gpt-4o-mini',
-    system: SYSTEM_PROMPT + languageInstruction,
-    messages: await convertToModelMessages(messages),
-    maxOutputTokens: 2000,
-  })
+    const languageInstruction = LANG_INSTRUCTIONS[language] || "";
 
-  return result.toUIMessageStreamResponse()
+    const result = streamText({
+      model: openai("gpt-4o-mini"),
+      system: SYSTEM_PROMPT + languageInstruction,
+      messages,
+      maxOutputTokens: 1500, // ✅ FIXED (was maxTokens)
+      temperature: 0.7,
+    });
+
+    // ✅ FIXED STREAM METHOD (safe + compatible)
+    return result.toTextStreamResponse();
+
+  } catch (error) {
+    console.error("[/api/chat] Error:", error);
+
+    return new Response(
+      JSON.stringify({ error: "Internal server error" }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
 }

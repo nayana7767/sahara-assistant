@@ -43,16 +43,16 @@ export function ChartHistorySidebar({
   }
 
   return (
-    <div className="hidden md:flex flex-col w-64 bg-slate-50 border-r border-slate-200 h-screen">
+    <div className="hidden lg:flex flex-col w-72 bg-white border-r border-border h-screen flex-shrink-0">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200">
+      <div className="p-4 border-b border-border">
         <Button
           onClick={onNewChart}
           variant="default"
           className="w-full gap-2"
         >
           <Plus className="w-4 h-4" />
-          New Chart
+          New Chat
         </Button>
       </div>
 
@@ -61,8 +61,8 @@ export function ChartHistorySidebar({
         <div className="p-4">
           {charts.length === 0 ? (
             <div className="text-center py-8">
-              <ChartArea className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <p className="text-sm text-slate-500">No charts yet</p>
+              <ChartArea className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
+              <p className="text-sm text-muted-foreground">No chats yet</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -72,8 +72,8 @@ export function ChartHistorySidebar({
                   className={cn(
                     'group relative p-3 rounded-lg cursor-pointer transition-colors',
                     activeChartId === chart.id
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'hover:bg-slate-100 text-slate-900'
+                      ? 'bg-primary/10 text-primary'
+                      : 'hover:bg-muted text-foreground'
                   )}
                   onClick={() => onSelectChart(chart)}
                 >
@@ -81,7 +81,7 @@ export function ChartHistorySidebar({
                     <p className="text-sm font-medium truncate">
                       {chart.title}
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {formatTimestamp(chart.createdAt)}
                     </p>
                   </div>
@@ -92,7 +92,7 @@ export function ChartHistorySidebar({
                       e.stopPropagation()
                       setDeleteId(chart.id)
                     }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -107,9 +107,9 @@ export function ChartHistorySidebar({
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Chart</AlertDialogTitle>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
             <AlertDialogDescription>
-              This chart will be permanently deleted. You cannot undo this action.
+              This chat will be permanently deleted. You cannot undo this action.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

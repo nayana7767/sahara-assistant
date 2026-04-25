@@ -80,7 +80,7 @@ export function ChatInput({ onSend, isLoading, language, disabled, t }: ChatInpu
     <motion.div 
       initial={{ y: 20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="border-t border-border/50 glass-card p-4"
+      className="w-full bg-white p-4"
     >
       {/* Listening indicator */}
       <AnimatePresence>
@@ -109,7 +109,7 @@ export function ChatInput({ onSend, isLoading, language, disabled, t }: ChatInpu
         )}
       </AnimatePresence>
 
-      <div className="flex items-end gap-3 max-w-4xl mx-auto">
+      <div className="flex items-end gap-3">
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
@@ -118,7 +118,7 @@ export function ChatInput({ onSend, isLoading, language, disabled, t }: ChatInpu
             onKeyDown={handleKeyDown}
             placeholder={t('chat.placeholder')}
             disabled={isLoading || disabled}
-            className="min-h-[56px] max-h-[200px] resize-none pr-14 py-4 rounded-2xl glass-card border-border/50 focus:border-primary/50 text-base"
+            className="min-h-[56px] max-h-[200px] resize-none pr-14 py-4 rounded-2xl border border-border focus:border-primary/50 focus:ring-primary/20 text-base"
             rows={1}
           />
           

@@ -87,7 +87,7 @@ export function ChatMessage({
           {/* Message */}
           <div
             className={cn(
-              'px-4 py-3 shadow-sm',
+              'px-4 py-3 shadow-sm break-words whitespace-pre-wrap',
               isUser
                 ? 'bg-primary text-white rounded-2xl rounded-br-md'
                 : 'glass-card rounded-2xl rounded-bl-md'
@@ -196,24 +196,24 @@ function MessageContent({
         if (!line.trim()) return <br key={i} />
 
         if (line.startsWith('### '))
-          return <h4 key={i}>{line.slice(4)}</h4>
+          return <h4 key={i} className="font-semibold break-words whitespace-pre-wrap">{line.slice(4)}</h4>
 
         if (line.startsWith('## '))
-          return <h3 key={i}>{line.slice(3)}</h3>
+          return <h3 key={i} className="font-semibold break-words whitespace-pre-wrap">{line.slice(3)}</h3>
 
         if (line.startsWith('# '))
-          return <h2 key={i}>{line.slice(2)}</h2>
+          return <h2 key={i} className="font-semibold break-words whitespace-pre-wrap">{line.slice(2)}</h2>
 
         if (line.startsWith('- ')) {
           return (
-            <div key={i} className="flex gap-2">
-              <span>•</span>
-              <span>{line.slice(2)}</span>
+            <div key={i} className="flex gap-2 break-words whitespace-pre-wrap">
+              <span className="flex-shrink-0">•</span>
+              <span className="break-words">{line.slice(2)}</span>
             </div>
           )
         }
 
-        return <p key={i}>{line}</p>
+        return <p key={i} className="break-words whitespace-pre-wrap">{line}</p>
       })}
     </div>
   )
