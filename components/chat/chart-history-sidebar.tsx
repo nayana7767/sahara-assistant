@@ -26,6 +26,12 @@ interface ChartHistorySidebarProps {
   onDeleteChart: (id: string) => void
 }
 
+// Truncate title to max 30 characters with ellipsis
+const truncateTitle = (title: string, maxLength: number = 30): string => {
+  if (title.length <= maxLength) return title
+  return title.substring(0, maxLength) + '...'
+}
+
 export function ChartHistorySidebar({
   charts,
   activeChartId,
@@ -43,65 +49,84 @@ export function ChartHistorySidebar({
   }
 
   return (
-    <div className="hidden lg:flex flex-col w-72 bg-white border-r border-border h-screen flex-shrink-0">
-      {/* Header */}
-      <div className="p-4 border-b border-border">
+    <div className="hidden lg:flex flex-col w-[280px] bg-white border-r border-gray-200 h-screen flex-shrink-0 shadow-sm">
+      {/* Header - NEW CHAT BUTTON (STICKY) */}
+      <div className="p-4 border-b border-gray-200">
         <Button
           onClick={onNewChart}
           variant="default"
-          className="w-full gap-2"
+          className="w-full gap-2 bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Plus className="w-4 h-4" />
           New Chat
         </Button>
       </div>
 
+      {/* RECENT CHATS LABEL */}
+      <div className="px-4 pt-4 pb-2">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          Recent Chats
+        </p>
+      </div>
+
       {/* Charts List */}
       <ScrollArea className="flex-1">
-        <div className="p-4">
+        <div className="px-3 pb-4 space-y-1">
           {charts.length === 0 ? (
-            <div className="text-center py-8">
-              <ChartArea className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
-              <p className="text-sm text-muted-foreground">No chats yet</p>
+            <div className="text-center py-8 px-2">
+              <ChartArea className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-400">No chats yet</p>
             </div>
           ) : (
-            <div className="space-y-1">
-              {charts.map((chart) => (
-                <div
-                  key={chart.id}
-                  className={cn(
-                    'group relative p-3 rounded-lg cursor-pointer transition-colors',
-                    activeChartId === chart.id
-                      ? 'bg-primary/10 text-primary'
-                      : 'hover:bg-muted text-foreground'
-                  )}
-                  onClick={() => onSelectChart(chart)}
-                >
-                  <div className="flex-1 min-w-0 pr-8">
-                    <p className="text-sm font-medium truncate">
-                      {chart.title}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatTimestamp(chart.createdAt)}
-                    </p>
-                  </div>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setDeleteId(chart.id)
-                    }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+            charts.map((chart) => (
+              <div
+                key={chart.id}
+                className={cn(
+                  'group relative px-3 py-2 rounded-lg cursor-pointer transition-colors duration-150',
+                  'flex items-center gap-2 min-w-0',
+                  activeChartId === chart.id
+                    ? 'bg-blue-50 border border-blue-200 text-blue-900'
+                    : 'hover:bg-gray-100 text-gray-700'
+                )}
+                onClick={() => onSelectChart(chart)}
+              >
+                {/* Chat Icon */}
+                <div className="flex-shrink-0 w-4 h-4">
+                  <ChartArea className="w-4 h-4 text-gray-400" />
                 </div>
-              ))}
-            </div>
+
+                {/* Chat Title - TRUNCATED, NO OVERFLOW */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate overflow-hidden whitespace-nowrap">
+                    {truncateTitle(chart.title)}
+                  </p>
+                  <p className="text-xs text-gray-400 truncate overflow-hidden whitespace-nowrap">
+                    {formatTimestamp(chart.createdAt)}
+                  </p>
+                </div>
+
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setDeleteId(chart.id)
+                  }}
+                  className="flex-shrink-0 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-all opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))
           )}
         </div>
       </ScrollArea>
+
+      {/* Footer */}
+      <div className="p-3 border-t border-gray-200">
+        <p className="text-xs text-gray-400 text-center">
+          Organize your chats
+        </p>
+      </div>
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
